@@ -15,7 +15,7 @@ import { DynamsoftBarcodeScannerView } from "react-native-dynamsoft-barcode-scan
 
 // ...
 
-<DynamsoftBarcodeScannerView color="tomato" />
+<Scanner scanning={scanning} style={styles.scanner} onScanned={onScanned}/>
 ```
 
 ## Contributing
