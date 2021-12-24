@@ -36,7 +36,7 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     private CameraEnhancer mCameraEnhancer;
     private DCECameraView mCameraView;
     private BarcodeReader reader = null;
-    private ReactContext context;
+    private ThemedReactContext context;
     @Override
     @NonNull
     public String getName() {
@@ -47,9 +47,8 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     @NonNull
     public DCECameraView createViewInstance(ThemedReactContext reactContext) {
         context = reactContext;
-        initDBR();
-        initDCE(reactContext);
-        bindDBRandDCE();
+        mCameraView = new DCECameraView(reactContext.getBaseContext());
+        init();
         return mCameraView;
     }
 
@@ -60,6 +59,12 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
         }else{
             reader.StopCameraEnhancer();
         }
+    }
+
+    private void init(){
+        initDBR();
+        initDCE(context);
+        bindDBRandDCE();
     }
 
     private void initDBR()  {
@@ -91,7 +96,6 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
         });
 
         mCameraEnhancer = new CameraEnhancer(reactContext.getBaseContext());
-        mCameraView = new DCECameraView(reactContext.getBaseContext());
         mCameraEnhancer.setCameraView(mCameraView);
         mCameraView.setOverlayVisible(true);
         return mCameraView;
