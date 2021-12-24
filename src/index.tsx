@@ -12,13 +12,14 @@ const LINKING_ERROR =
   '- You are not using Expo managed workflow\n';
 
 type DynamsoftBarcodeScannerProps = {
-  color: string;
+  scanning: boolean;
   style: ViewStyle;
+  onScanned: Event;
 };
 
 const ComponentName = 'DynamsoftBarcodeScannerView';
 
-export const DynamsoftBarcodeScannerView =
+export const Scanner =
   UIManager.getViewManagerConfig(ComponentName) != null
     ? requireNativeComponent<DynamsoftBarcodeScannerProps>(ComponentName)
     : () => {
