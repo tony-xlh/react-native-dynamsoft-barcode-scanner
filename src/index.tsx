@@ -5,6 +5,16 @@ import {
   ViewStyle,
 } from 'react-native';
 
+export interface ScanResult{
+  barcodeText: string;
+  barcodeFormat: string;
+}
+
+export interface CameraInfo{
+  selectedCamera: string;
+  cameras: Array<string>;
+}
+
 const LINKING_ERROR =
   `The package 'react-native-dynamsoft-barcode-scanner' doesn't seem to be linked. Make sure: \n\n` +
   Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
@@ -12,9 +22,15 @@ const LINKING_ERROR =
   '- You are not using Expo managed workflow\n';
 
 type DynamsoftBarcodeScannerProps = {
-  scanning: boolean;
+  isScanning: boolean;
   style: ViewStyle;
-  onScanned: Event;
+  template?: string;
+  organizationID?: string;
+  licenseKey?: string;
+  flashOn?: boolean;
+  cameraID?: string;
+  onScanned?: Event;
+  onCameraUpdated?: Event;
 };
 
 const ComponentName = 'DynamsoftBarcodeScannerView';

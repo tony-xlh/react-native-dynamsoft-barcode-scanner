@@ -1,13 +1,16 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { DeviceEventEmitter, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Scanner } from 'react-native-dynamsoft-barcode-scanner';
-import type { ScanResult } from './Definitions';
+import { CameraInfo, Scanner, ScanResult } from 'react-native-dynamsoft-barcode-scanner';
+
+let currentCameraInfo: CameraInfo | undefined;
 
 export default function App() {
-  const [scanning, setScanning] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [flashOn, setFlashOn] = useState(false);
   const [btnText, setBtnText] = useState('Start Scan');
   const [barcodesInfo, setBarcodesInfo] = useState('');
+  const [cameraID, setCameraID] = useState('');
   const onScanned = (results:Array<ScanResult>) => {
     var info = "";
     for (var i=0;i<results.length;i++){
@@ -16,28 +19,77 @@ export default function App() {
     }
     setBarcodesInfo(info);
   }
+  
+  const onCameraUpdated = (cameraInfo:CameraInfo) => {
+    if (cameraInfo != undefined){
+      currentCameraInfo = cameraInfo;
+    }
+  }
+
+  const switchCamera = () => {
+    if (currentCameraInfo != undefined){
+      for (var i=0;i<currentCameraInfo.cameras.length;i++){
+        console.log(currentCameraInfo.cameras[i]);
+        if (currentCameraInfo.selectedCamera!=currentCameraInfo.cameras[i]){
+          let newCamera = currentCameraInfo.cameras[i];
+          currentCameraInfo.selectedCamera = newCamera;
+          setCameraID(newCamera);
+          return;
+        }
+      }
+    }
+  }
+  
   DeviceEventEmitter.addListener('onScanned',onScanned);
+  DeviceEventEmitter.addListener('onCameraUpdated',onCameraUpdated);
+
   const toggleScan = () =>  {
-    if (scanning == true){
-      setScanning(false);
+    if (isScanning == true){
+      setIsScanning(false);
       setBtnText("Start Scan");
     }else{
-      setScanning(true);
+      setIsScanning(true);
       setBtnText("Stop Scan");
+    }
+  }
+
+  const toggleFlash = () =>  {
+    if (flashOn == true){
+      setFlashOn(false);
+    }else{
+      setFlashOn(true);
     }
   }
 
   return (
     <View style={styles.container}>
-      <Scanner scanning={scanning} style={styles.scanner} onScanned={onScanned}/>
+      <Scanner 
+        isScanning={isScanning} 
+        style={styles.scanner} 
+        flashOn={flashOn}
+        cameraID={cameraID}
+        onScanned={onScanned}
+        onCameraUpdated={onCameraUpdated}
+      />
+      
       <View style={{ position: 'absolute', top: 10,left: 10 }}>
           <Text style={{ fontSize: 14, textShadowRadius: 12, textShadowColor: "black", color: "white" }}> {barcodesInfo} </Text>
+      </View>
+      <View style={{ position: 'absolute', top: 10, right: 10, height: 20 }}>
+          <TouchableOpacity onPress={toggleFlash} >
+            <Text style={{ fontSize: 14, textShadowRadius: 30, textShadowColor: "white" }}> Toggle Flash </Text>
+          </TouchableOpacity>
+      </View>
+      <View style={{ position: 'absolute', top: 40, right: 10, height: 20 }}>
+          <TouchableOpacity onPress={switchCamera} >
+            <Text style={{ fontSize: 14, textShadowRadius: 30, textShadowColor: "white" }}> Switch Camera </Text>
+          </TouchableOpacity>
       </View>
       <View style={{ position: 'absolute', justifyContent: 'center', bottom: "10%" }}>
           <TouchableOpacity onPress={toggleScan} >
             <Text style={{ fontSize: 14, textShadowRadius: 30, textShadowColor: "white" }}> {btnText} </Text>
           </TouchableOpacity>
-        </View>
+      </View>
     </View>
   );
 }

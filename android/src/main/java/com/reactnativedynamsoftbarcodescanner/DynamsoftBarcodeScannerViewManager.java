@@ -1,7 +1,6 @@
 package com.reactnativedynamsoftbarcodescanner;
 
-import android.graphics.Camera;
-import android.graphics.Color;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -11,25 +10,21 @@ import com.dynamsoft.dbr.BarcodeReaderException;
 import com.dynamsoft.dbr.DBRDLSLicenseVerificationListener;
 import com.dynamsoft.dbr.DCESettingParameters;
 import com.dynamsoft.dbr.DMDLSConnectionParameters;
+import com.dynamsoft.dbr.EnumConflictMode;
 import com.dynamsoft.dbr.TextResult;
 import com.dynamsoft.dbr.TextResultCallback;
 import com.dynamsoft.dce.CameraEnhancer;
 import com.dynamsoft.dce.CameraEnhancerException;
 import com.dynamsoft.dce.DCECameraView;
 import com.dynamsoft.dce.DCELicenseVerificationListener;
-import com.dynamsoft.dce.EnumCameraState;
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.common.MapBuilder;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
-import com.facebook.react.uimanager.events.RCTEventEmitter;
 
-import java.util.Map;
 
 public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECameraView> {
     public static final String REACT_CLASS = "DynamsoftBarcodeScannerView";
@@ -37,6 +32,11 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     private DCECameraView mCameraView;
     private BarcodeReader reader = null;
     private ThemedReactContext context;
+    private String licenseKey = null;
+    private String template = null;
+    private String organizationID = "200001";
+    private Boolean flashOn = false;
+
     @Override
     @NonNull
     public String getName() {
@@ -47,24 +47,92 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     @NonNull
     public DCECameraView createViewInstance(ThemedReactContext reactContext) {
         context = reactContext;
+        Log.d("DBR",organizationID);
         mCameraView = new DCECameraView(reactContext.getBaseContext());
-        init();
         return mCameraView;
     }
 
-    @ReactProp(name = "scanning")
-    public void setScanning(View view, Boolean scanning) {
-        if (scanning) {
-            reader.StartCameraEnhancer();
-        }else{
-            reader.StopCameraEnhancer();
+    @ReactProp(name = "organizationID")
+    public void setOrganizationID(View view, String ID) {
+        organizationID = ID;
+    }
+
+    @ReactProp(name = "template")
+    public void setTemplate(View view, String template) {
+        this.template = template;
+        updateTemplate();
+    }
+
+    @ReactProp(name = "flashOn")
+    public void setFlashOn(View view, Boolean on) {
+        flashOn = on;
+        toggleFlash();
+    }
+
+    private void updateSettings(){
+        toggleFlash();
+        updateTemplate();
+    }
+
+    private void toggleFlash(){
+        if (mCameraEnhancer!=null){
+            try {
+                if (flashOn == true){
+                    mCameraEnhancer.turnOnTorch();
+                }else{
+                    mCameraEnhancer.turnOffTorch();
+                }
+            } catch (CameraEnhancerException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    private void init(){
-        initDBR();
-        initDCE(context);
-        bindDBRandDCE();
+    private void updateTemplate(){
+        if (reader!=null && template!=null){
+            try {
+                reader.initRuntimeSettingsWithString(template, EnumConflictMode.CM_OVERWRITE);
+            } catch (BarcodeReaderException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @ReactProp(name = "licenseKey")
+    public void setLicenseKey(View view, String key) {
+        licenseKey = key;
+    }
+
+    @ReactProp(name = "cameraID")
+    public void setCameraID(View view, String id) {
+        if (mCameraEnhancer!=null){
+            try {
+                mCameraEnhancer.selectCamera(id);
+            } catch (CameraEnhancerException  e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @ReactProp(name = "isScanning")
+    public void setIsScanning(View view, Boolean isScanning) {
+        if (isScanning) {
+            initIfNeeded();
+            updateSettings();
+            reader.StartCameraEnhancer();
+        }else{
+            if (reader!=null){
+                reader.StopCameraEnhancer();
+            }
+        }
+    }
+
+    private void initIfNeeded(){
+        if (reader == null){
+            initDBR();
+            initDCE(context);
+            bindDBRandDCE();
+        }
     }
 
     private void initDBR()  {
@@ -73,29 +141,38 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
         } catch (BarcodeReaderException e) {
             e.printStackTrace();
         }
-        DMDLSConnectionParameters dbrParameters = new DMDLSConnectionParameters();
-        dbrParameters.organizationID = "200001";
-        reader.initLicenseFromDLS(dbrParameters, new DBRDLSLicenseVerificationListener() {
-            @Override
-            public void DLSLicenseVerificationCallback(boolean isSuccessful, Exception e) {
-                if (!isSuccessful) {
-                    e.printStackTrace();
-                }
+        if (licenseKey!=null){
+            try {
+                reader.initLicense(licenseKey);
+            } catch (BarcodeReaderException e) {
+                e.printStackTrace();
             }
-        });
+        }else{
+            DMDLSConnectionParameters dbrParameters = new DMDLSConnectionParameters();
+            dbrParameters.organizationID = organizationID;
+            reader.initLicenseFromDLS(dbrParameters, new DBRDLSLicenseVerificationListener() {
+                @Override
+                public void DLSLicenseVerificationCallback(boolean isSuccessful, Exception e) {
+                    if (!isSuccessful) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
     }
 
     private DCECameraView initDCE(ThemedReactContext reactContext){
-        CameraEnhancer.initLicense("200001", new DCELicenseVerificationListener() {
-          @Override
-          public void DCELicenseVerificationCallback(boolean isSuccess, Exception error) {
-            if(!isSuccess){
-              error.printStackTrace();
+        CameraEnhancer.initLicense(organizationID, new DCELicenseVerificationListener() {
+            @Override
+            public void DCELicenseVerificationCallback(boolean isSuccess, Exception error) {
+                if(!isSuccess){
+                    error.printStackTrace();
+                }
             }
-          }
         });
 
         mCameraEnhancer = new CameraEnhancer(reactContext.getBaseContext());
+        onCameraUpdated();
         mCameraEnhancer.setCameraView(mCameraView);
         mCameraView.setOverlayVisible(true);
         return mCameraView;
@@ -124,5 +201,17 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
             results.pushMap(map);
         }
         context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onScanned",results);
+    }
+
+    public void onCameraUpdated() {
+        WritableMap map = Arguments.createMap();
+        WritableArray cameras = Arguments.createArray();
+        for (String cameraID : mCameraEnhancer.getAllCameras()){
+            cameras.pushString(cameraID);
+        }
+        map.putArray("cameras",cameras);
+        map.putString("selectedCamera",mCameraEnhancer.getSelectedCamera());
+        Log.d("DBR","camera updated");
+        context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onCameraUpdated",map);
     }
 }
