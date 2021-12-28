@@ -60,7 +60,8 @@ export default function App() {
       setFlashOn(true);
     }
   }
-
+  const template = "{\"ImageParameter\":{\"BarcodeFormatIds\":[\"BF_QR_CODE\"],\"Description\":\"\",\"Name\":\"Settings\"},\"Version\":\"3.0\"}";
+  
   return (
     <View style={styles.container}>
       <Scanner 
@@ -69,6 +70,7 @@ export default function App() {
         flashOn={flashOn}
         cameraID={cameraID}
         onScanned={onScanned}
+        template={template}
         onCameraUpdated={onCameraUpdated}
       />
       
@@ -82,12 +84,12 @@ export default function App() {
       </View>
       <View style={{ position: 'absolute', top: 40, right: 10, height: 20 }}>
           <TouchableOpacity onPress={switchCamera} >
-            <Text style={{ fontSize: 14, textShadowRadius: 30, textShadowColor: "white" }}> Switch Camera </Text>
+            <Text style={{ fontSize: 14,textAlignVertical:"center", textShadowRadius: 30, textShadowColor: "white" }}> Switch Camera </Text>
           </TouchableOpacity>
       </View>
-      <View style={{ position: 'absolute', justifyContent: 'center', bottom: "10%" }}>
+      <View style={{ ...styles.bordered, ...{ position: 'absolute', justifyContent: 'center', bottom: "10%" } }}>
           <TouchableOpacity onPress={toggleScan} >
-            <Text style={{ fontSize: 14, textShadowRadius: 30, textShadowColor: "white" }}> {btnText} </Text>
+            <Text style={{ fontSize: 16 }}> {btnText} </Text>
           </TouchableOpacity>
       </View>
     </View>
@@ -104,4 +106,10 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
+  bordered:{
+    borderColor:"black", 
+    borderWidth:2, 
+    borderRadius:5,
+    backgroundColor: "rgba(255,255,255,0.2)"
+  }
 });
