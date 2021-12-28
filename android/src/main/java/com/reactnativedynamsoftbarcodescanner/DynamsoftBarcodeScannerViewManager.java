@@ -18,6 +18,7 @@ import com.dynamsoft.dce.CameraEnhancerException;
 import com.dynamsoft.dce.DCECameraView;
 import com.dynamsoft.dce.DCELicenseVerificationListener;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
@@ -26,7 +27,7 @@ import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
 
 
-public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECameraView> {
+public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECameraView> implements LifecycleEventListener {
     public static final String REACT_CLASS = "DynamsoftBarcodeScannerView";
     private CameraEnhancer mCameraEnhancer;
     private DCECameraView mCameraView;
@@ -36,6 +37,7 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     private String template = null;
     private String organizationID = "200001";
     private Boolean flashOn = false;
+    private Boolean isScanning = false;
 
     @Override
     @NonNull
@@ -47,6 +49,7 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     @NonNull
     public DCECameraView createViewInstance(ThemedReactContext reactContext) {
         context = reactContext;
+        reactContext.addLifecycleEventListener(this);
         Log.d("DBR",organizationID);
         mCameraView = new DCECameraView(reactContext.getBaseContext());
         return mCameraView;
@@ -116,6 +119,7 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
 
     @ReactProp(name = "isScanning")
     public void setIsScanning(View view, Boolean isScanning) {
+        this.isScanning = isScanning;
         if (isScanning) {
             initIfNeeded();
             updateSettings();
@@ -213,5 +217,26 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
         map.putString("selectedCamera",mCameraEnhancer.getSelectedCamera());
         Log.d("DBR","camera updated");
         context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onCameraUpdated",map);
+    }
+
+    @Override
+    public void onHostResume() {
+        if (reader!=null){
+            if (this.isScanning){
+                reader.StartCameraEnhancer();
+            }
+        }
+    }
+
+    @Override
+    public void onHostPause() {
+        if (reader!=null){
+            reader.StopCameraEnhancer();
+        }
+    }
+
+    @Override
+    public void onHostDestroy() {
+
     }
 }
