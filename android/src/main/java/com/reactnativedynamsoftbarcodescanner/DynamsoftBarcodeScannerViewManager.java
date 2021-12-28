@@ -33,9 +33,10 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     private DCECameraView mCameraView;
     private BarcodeReader reader = null;
     private ThemedReactContext context;
-    private String licenseKey = null;
+    private String dbrLicense = null;
     private String template = null;
     private String organizationID = "200001";
+    private String dceLicense = "DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9";
     private Boolean flashOn = false;
     private Boolean isScanning = false;
 
@@ -50,7 +51,6 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     public DCECameraView createViewInstance(ThemedReactContext reactContext) {
         context = reactContext;
         reactContext.addLifecycleEventListener(this);
-        Log.d("DBR",organizationID);
         mCameraView = new DCECameraView(reactContext.getBaseContext());
         return mCameraView;
     }
@@ -58,6 +58,11 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     @ReactProp(name = "organizationID")
     public void setOrganizationID(View view, String ID) {
         organizationID = ID;
+    }
+
+    @ReactProp(name = "dceLicense")
+    public void setDceLicense(View view, String license) {
+        dceLicense = license;
     }
 
     @ReactProp(name = "template")
@@ -101,9 +106,9 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
         }
     }
 
-    @ReactProp(name = "licenseKey")
-    public void setLicenseKey(View view, String key) {
-        licenseKey = key;
+    @ReactProp(name = "dbrLicense")
+    public void setDbrLicense(View view, String license) {
+        dbrLicense = license;
     }
 
     @ReactProp(name = "cameraID")
@@ -145,9 +150,9 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
         } catch (BarcodeReaderException e) {
             e.printStackTrace();
         }
-        if (licenseKey!=null){
+        if (dbrLicense!=null){
             try {
-                reader.initLicense(licenseKey);
+                reader.initLicense(dbrLicense);
             } catch (BarcodeReaderException e) {
                 e.printStackTrace();
             }
@@ -166,7 +171,7 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     }
 
     private DCECameraView initDCE(ThemedReactContext reactContext){
-        CameraEnhancer.initLicense(organizationID, new DCELicenseVerificationListener() {
+        CameraEnhancer.initLicense(dceLicense, new DCELicenseVerificationListener() {
             @Override
             public void DCELicenseVerificationCallback(boolean isSuccess, Exception error) {
                 if(!isSuccess){

@@ -26,7 +26,8 @@ type DynamsoftBarcodeScannerProps = {
   style: ViewStyle;
   template?: string;
   organizationID?: string;
-  licenseKey?: string;
+  dbrLicense?: string;
+  dceLicense?: string;
   flashOn?: boolean;
   cameraID?: string;
   onScanned?: Event;
