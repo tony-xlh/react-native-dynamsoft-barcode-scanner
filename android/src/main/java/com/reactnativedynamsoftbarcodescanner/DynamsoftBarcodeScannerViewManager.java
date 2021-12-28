@@ -237,6 +237,11 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
 
     @Override
     public void onHostDestroy() {
-
+        if (reader!=null){
+            reader.destroy();
+            reader=null;
+            mCameraEnhancer=null;
+        }
+        context.removeLifecycleEventListener(this);
     }
 }

@@ -1,11 +1,33 @@
 import * as React from 'react';
-import { useState } from 'react';
-import { DeviceEventEmitter, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, BackHandler, DeviceEventEmitter, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CameraInfo, Scanner, ScanResult } from 'react-native-dynamsoft-barcode-scanner';
 
 let currentCameraInfo: CameraInfo | undefined;
 
 export default function App() {
+
+  useEffect(() => {
+    const backAction = () => {
+      Alert.alert("Hold on!", "Are you sure you want to close the app?", [
+        {
+          text: "Cancel",
+          onPress: () => null,
+          style: "cancel"
+        },
+        { text: "YES", onPress: () => BackHandler.exitApp() }
+      ]);
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
   const [isScanning, setIsScanning] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
   const [btnText, setBtnText] = useState('Start Scan');
