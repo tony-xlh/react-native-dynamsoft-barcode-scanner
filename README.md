@@ -99,6 +99,8 @@ const App = () => {
 export default App;
 ```
 
+Check out the [example](example) for more details.
+
 ### Props
 
 ```ts
