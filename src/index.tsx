@@ -8,6 +8,7 @@ import {
 export interface ScanResult{
   barcodeText: string;
   barcodeFormat: string;
+  barcodeBytesBase64: string;
 }
 
 export interface CameraInfo{

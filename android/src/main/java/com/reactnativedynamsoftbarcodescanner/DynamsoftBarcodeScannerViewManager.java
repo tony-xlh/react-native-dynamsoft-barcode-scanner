@@ -1,5 +1,6 @@
 package com.reactnativedynamsoftbarcodescanner;
 
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 
@@ -203,10 +204,11 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
 
     public void onScanned(TextResult[] textResults) {
         WritableArray results = Arguments.createArray();
-        for (TextResult result:textResults){
+        for (TextResult tr:textResults){
             WritableMap map = Arguments.createMap();
-            map.putString("barcodeText",result.barcodeText);
-            map.putString("barcodeFormat",result.barcodeFormatString);
+            map.putString("barcodeText", tr.barcodeText);
+            map.putString("barcodeFormat", tr.barcodeFormatString);
+            map.putString("barcodeBytesBase64", Base64.encodeToString(tr.barcodeBytes, Base64.DEFAULT));
             results.pushMap(map);
         }
         context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onScanned",results);
@@ -220,7 +222,7 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
         }
         map.putArray("cameras",cameras);
         map.putString("selectedCamera",mCameraEnhancer.getSelectedCamera());
-        Log.d("DBR","camera updated");
+        Log.d("DBR","camera opened");
         context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onCameraOpened",map);
     }
 

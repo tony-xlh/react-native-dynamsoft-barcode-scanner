@@ -82,6 +82,7 @@ export default function App() {
       setFlashOn(true);
     }
   }
+
   const template = "{\"ImageParameter\":{\"BarcodeFormatIds\":[\"BF_QR_CODE\"],\"Description\":\"\",\"Name\":\"Settings\"},\"Version\":\"3.0\"}";
   
   return (
