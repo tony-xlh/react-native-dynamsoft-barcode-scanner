@@ -14,8 +14,10 @@ class DynamsoftBarcodeScannerViewManager: RCTViewManager  {
 
 
 
-class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DBRTextResultDelegate {
-    @objc var onScanned: RCTDirectEventBlock?
+class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DCELicenseVerificationListener, DBRTextResultDelegate {
+    @objc var dceLicense: String = "DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9"
+    @objc var dbrLicense: String = ""
+    @objc var organizationID: String = "200001"
     var dce:DynamsoftCameraEnhancer! = nil
     var barcodeReader:DynamsoftBarcodeReader! = nil
     var dceView:DCECameraView! = nil
@@ -32,6 +34,7 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DB
                 if (barcodeReader == nil){
                     configurationDBR()
                     configurationDCE()
+                    updateSettings()
                 }else{
                     dce.resume()
                 }
@@ -45,14 +48,7 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DB
     
     @objc var flashOn: Bool = false {
         didSet {
-            if dce != nil {
-                if flashOn
-                {
-                    dce.turnOnTorch()
-                }else{
-                    dce.turnOffTorch()
-                }
-            }
+            toggleFlash()
         }
     }
     
@@ -67,13 +63,44 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DB
         }
     }
     
+    @objc var template: String = "" {
+        didSet {
+            updateTemplate()
+        }
+    }
+    
+    func updateSettings(){
+        toggleFlash()
+        updateTemplate()
+    }
+    
+    func toggleFlash(){
+        if dce != nil {
+            if flashOn
+            {
+                dce.turnOnTorch()
+            }else{
+                dce.turnOffTorch()
+            }
+        }
+    }
+    
+    func updateTemplate(){
+        if barcodeReader != nil {
+            if (template != ""){
+                var error: NSError? = NSError()
+                barcodeReader.initRuntimeSettings(with: template, conflictMode: EnumConflictMode.overwrite, error: &error)
+            }else{
+                var error: NSError? = NSError()
+                barcodeReader.resetRuntimeSettings(&error)
+            }
+        }
+    }
     
     func configurationDBR() {
         let dls = iDMDLSConnectionParameters()
-        let license = ""
-        
-        if (license != ""){
-            barcodeReader = DynamsoftBarcodeReader(license: license)
+        if (dbrLicense != ""){
+            barcodeReader = DynamsoftBarcodeReader(license: dbrLicense)
         }else{
             dls.organizationID = "200001"
             barcodeReader = DynamsoftBarcodeReader(licenseFromDLS: dls, verificationDelegate: self)
@@ -83,8 +110,10 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DB
     func configurationDCE() {
         // Initialize a camera view for previewing video.
         dceView = DCECameraView.init(frame: self.bounds)
+       
         self.addSubview(dceView)
         dceView.overlayVisible = true
+        DynamsoftCameraEnhancer.initLicense(dceLicense, verificationDelegate: self)
         dce = DynamsoftCameraEnhancer.init(view: dceView)
         dce.open()
         onCameraOpened()
@@ -106,7 +135,13 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DB
     public func dlsLicenseVerificationCallback(_ isSuccess: Bool, error: Error?) {
         if(error != nil)
         {
-            print("dls error")
+            print("dbr dls error")
+        }
+    }
+    
+    func dceLicenseVerificationCallback(_ isSuccess: Bool, error: Error?) {
+        if(error != nil){
+            print("dce dls error")
         }
     }
     
