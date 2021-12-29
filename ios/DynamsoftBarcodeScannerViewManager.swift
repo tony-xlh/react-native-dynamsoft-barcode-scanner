@@ -27,10 +27,8 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DB
     
     @objc var isScanning: Bool = false {
         didSet {
-            print("isScanning: "+isScanning.description)
             if isScanning
             {
-                print("start scan")
                 if (barcodeReader == nil){
                     configurationDBR()
                     configurationDCE()
@@ -38,11 +36,8 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DB
                     dce.resume()
                 }
             }else{
-                print("stop scan")
                 if dce != nil {
-                    print("pausing")
                     dce.pause()
-                    print("done")
                 }
             }
         }
@@ -50,7 +45,6 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DB
     
     @objc var flashOn: Bool = false {
         didSet {
-            print("flash")
             if dce != nil {
                 if flashOn
                 {
@@ -64,7 +58,6 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DB
     
     @objc var cameraID: String = "" {
         didSet {
-            print("cameraID")
             if dce != nil {
                 if cameraID != "" {
                     var error: NSError? = NSError()
