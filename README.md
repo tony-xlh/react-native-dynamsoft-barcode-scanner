@@ -44,29 +44,59 @@ Or from git:
 npm install https://github.com/xulihang/react-native-dynamsoft-barcode-scanner
 ```
 
-## Usage
+## Demo
 
 ```js
-import { Scanner, ScanResult } from "react-native-dynamsoft-barcode-scanner";
+import * as React from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  DeviceEventEmitter,
+} from 'react-native';
+import { Scanner } from 'react-native-dynamsoft-barcode-scanner'
 
-export default function App() {
-    const [isScanning, setIsScanning] = useState(true);
-    const onScanned = (results:Array<ScanResult>) => {
-        var info = "";
-        for (var i=0;i<results.length;i++){
-          let result = results[i];
-          info = info + result.barcodeFormat + ": " + result.barcodeText + "\n";
-        }
-        console.log(info);
-    }
-    DeviceEventEmitter.addListener('onScanned',onScanned);
-    return (
-        <Scanner 
-            isScanning={isScanning}
-            onScanned={onScanned}
-        />
-    );
-}
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scanner: {
+    width: "100%",
+    height: "100%",
+  }
+});
+
+const App = () => {
+  const [isScanning, setIsScanning] = React.useState(true);
+  const [barcodesInfo, setBarcodesInfo] = React.useState('');
+  const onScanned = (results) => {
+      var info = "";
+      for (var i=0;i<results.length;i++){
+        let result = results[i];
+        info = info + result.barcodeFormat + ": " + result.barcodeText + "\n";
+      }
+      setBarcodesInfo(info);
+      console.log(info);
+  }
+  DeviceEventEmitter.addListener('onScanned',onScanned);
+
+  return (
+    <View style={styles.container}>
+      <Scanner 
+        isScanning={isScanning}
+        onScanned={onScanned}
+        style={styles.scanner}
+      />
+      <View style={{ position: 'absolute', top: "5%", left: 10, width: "80%" }}>
+          <Text style={{ fontSize: 14, textShadowRadius: 12, textShadowColor: "black", color: "white" }}> {barcodesInfo} </Text>
+      </View>
+    </View>
+  );
+};
+
+export default App;
 ```
 
 ### Props
