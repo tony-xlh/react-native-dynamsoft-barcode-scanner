@@ -96,7 +96,7 @@ export default function App() {
         onCameraOpened={onCameraOpened}
       />
       
-      <View style={{ position: 'absolute', top: 10,left: 10 }}>
+      <View style={{ position: 'absolute', top: "5%", left: 10, width: "80%" }}>
           <Text style={{ fontSize: 14, textShadowRadius: 12, textShadowColor: "black", color: "white" }}> {barcodesInfo} </Text>
       </View>
       <View style={{ position: 'absolute', bottom: 20, right: 0, height: 20 }}>
