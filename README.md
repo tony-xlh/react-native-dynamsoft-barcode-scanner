@@ -50,7 +50,7 @@ npm install https://github.com/xulihang/react-native-dynamsoft-barcode-scanner
 import { Scanner, ScanResult } from "react-native-dynamsoft-barcode-scanner";
 
 export default function App() {
-    const [isScanning, setIsScanning] = useState(false);
+    const [isScanning, setIsScanning] = useState(true);
     const onScanned = (results:Array<ScanResult>) => {
         var info = "";
         for (var i=0;i<results.length;i++){
