@@ -31,7 +31,7 @@ type DynamsoftBarcodeScannerProps = {
   flashOn?: boolean;
   cameraID?: string;
   onScanned?: Event;
-  onCameraUpdated?: Event;
+  onCameraOpened?: Event;
 };
 
 const ComponentName = 'DynamsoftBarcodeScannerView';

@@ -181,7 +181,7 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
         });
 
         mCameraEnhancer = new CameraEnhancer(reactContext.getBaseContext());
-        onCameraUpdated();
+        onCameraOpened();
         mCameraEnhancer.setCameraView(mCameraView);
         mCameraView.setOverlayVisible(true);
         return mCameraView;
@@ -212,7 +212,7 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
         context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onScanned",results);
     }
 
-    public void onCameraUpdated() {
+    public void onCameraOpened() {
         WritableMap map = Arguments.createMap();
         WritableArray cameras = Arguments.createArray();
         for (String cameraID : mCameraEnhancer.getAllCameras()){
@@ -221,7 +221,7 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
         map.putArray("cameras",cameras);
         map.putString("selectedCamera",mCameraEnhancer.getSelectedCamera());
         Log.d("DBR","camera updated");
-        context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onCameraUpdated",map);
+        context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onCameraOpened",map);
     }
 
     @Override

@@ -42,7 +42,7 @@ export default function App() {
     setBarcodesInfo(info);
   }
   
-  const onCameraUpdated = (cameraInfo:CameraInfo) => {
+  const onCameraOpened = (cameraInfo:CameraInfo) => {
     if (cameraInfo != undefined){
       currentCameraInfo = cameraInfo;
     }
@@ -63,7 +63,7 @@ export default function App() {
   }
   
   DeviceEventEmitter.addListener('onScanned',onScanned);
-  DeviceEventEmitter.addListener('onCameraUpdated',onCameraUpdated);
+  DeviceEventEmitter.addListener('onCameraOpened',onCameraOpened);
 
   const toggleScan = () =>  {
     if (isScanning == true){
@@ -93,7 +93,7 @@ export default function App() {
         cameraID={cameraID}
         onScanned={onScanned}
         template={template}
-        onCameraUpdated={onCameraUpdated}
+        onCameraOpened={onCameraOpened}
       />
       
       <View style={{ position: 'absolute', top: 10,left: 10 }}>

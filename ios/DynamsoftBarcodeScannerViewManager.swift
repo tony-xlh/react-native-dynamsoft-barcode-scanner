@@ -102,7 +102,7 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DC
         if (dbrLicense != ""){
             barcodeReader = DynamsoftBarcodeReader(license: dbrLicense)
         }else{
-            dls.organizationID = "200001"
+            dls.organizationID = organizationID
             barcodeReader = DynamsoftBarcodeReader(licenseFromDLS: dls, verificationDelegate: self)
         }
     }
@@ -169,6 +169,6 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DC
             array.add(cameraID)
         }
         info["cameras"] = array
-        bridge.eventDispatcher().sendDeviceEvent(withName: "onCameraUpdated", body: info)
+        bridge.eventDispatcher().sendDeviceEvent(withName: "onCameraOpened", body: info)
     }
 }
