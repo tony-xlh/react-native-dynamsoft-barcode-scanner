@@ -1,32 +1,146 @@
+import DynamsoftCameraEnhancer
+import DynamsoftBarcodeReader
+import React
+
 @objc(DynamsoftBarcodeScannerViewManager)
-class DynamsoftBarcodeScannerViewManager: RCTViewManager {
+class DynamsoftBarcodeScannerViewManager: RCTViewManager  {
 
   override func view() -> (DynamsoftBarcodeScannerView) {
-    return DynamsoftBarcodeScannerView()
+      let view = DynamsoftBarcodeScannerView()
+      view.setBridge(bridge: self.bridge)
+      return view
   }
 }
 
-class DynamsoftBarcodeScannerView : UIView {
 
-  @objc var color: String = "" {
-    didSet {
-      self.backgroundColor = hexStringToUIColor(hexColor: color)
+
+class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DBRTextResultDelegate {
+    @objc var onScanned: RCTDirectEventBlock?
+    var dce:DynamsoftCameraEnhancer! = nil
+    var barcodeReader:DynamsoftBarcodeReader! = nil
+    var dceView:DCECameraView! = nil
+    var bridge:RCTBridge! = nil
+
+    func setBridge(bridge:RCTBridge){
+        self.bridge = bridge
     }
-  }
-
-  func hexStringToUIColor(hexColor: String) -> UIColor {
-    let stringScanner = Scanner(string: hexColor)
-
-    if(hexColor.hasPrefix("#")) {
-      stringScanner.scanLocation = 1
+    
+    @objc var isScanning: Bool = false {
+        didSet {
+            print("isScanning: "+isScanning.description)
+            if isScanning
+            {
+                print("start scan")
+                if (barcodeReader == nil){
+                    configurationDBR()
+                    configurationDCE()
+                }else{
+                    dce.resume()
+                }
+            }else{
+                print("stop scan")
+                if dce != nil {
+                    print("pausing")
+                    dce.pause()
+                    print("done")
+                }
+            }
+        }
     }
-    var color: UInt32 = 0
-    stringScanner.scanHexInt32(&color)
+    
+    @objc var flashOn: Bool = false {
+        didSet {
+            print("flash")
+            if dce != nil {
+                if flashOn
+                {
+                    dce.turnOnTorch()
+                }else{
+                    dce.turnOffTorch()
+                }
+            }
+        }
+    }
+    
+    @objc var cameraID: String = "" {
+        didSet {
+            print("cameraID")
+            if dce != nil {
+                if cameraID != "" {
+                    var error: NSError? = NSError()
+                    dce.selectCamera(cameraID, error: &error)
+                }
+            }
+        }
+    }
+    
+    
+    func configurationDBR() {
+        let dls = iDMDLSConnectionParameters()
+        let license = ""
+        
+        if (license != ""){
+            barcodeReader = DynamsoftBarcodeReader(license: license)
+        }else{
+            dls.organizationID = "200001"
+            barcodeReader = DynamsoftBarcodeReader(licenseFromDLS: dls, verificationDelegate: self)
+        }
+    }
+        
+    func configurationDCE() {
+        // Initialize a camera view for previewing video.
+        dceView = DCECameraView.init(frame: self.bounds)
+        self.addSubview(dceView)
+        dceView.overlayVisible = true
+        dce = DynamsoftCameraEnhancer.init(view: dceView)
+        dce.open()
+        onCameraOpened()
+        bindDCEtoDBR()
+    }
 
-    let r = CGFloat(Int(color >> 16) & 0x000000FF)
-    let g = CGFloat(Int(color >> 8) & 0x000000FF)
-    let b = CGFloat(Int(color) & 0x000000FF)
-
-    return UIColor(red: r / 255.0, green: g / 255.0, blue: b / 255.0, alpha: 1)
-  }
+    func bindDCEtoDBR(){
+        // Create settings of video barcode reading.
+        let para = iDCESettingParameters.init()
+        // This cameraInstance is the instance of the Dynamsoft Camera Enhancer.
+        // The Barcode Reader will use this instance to take control of the camera and acquire frames from the camera to start the barcode decoding process.
+        para.cameraInstance = dce
+        // Make this setting to get the result. The result will be an object that contains text result and other barcode information.
+        para.textResultDelegate = self
+        // Bind the Camera Enhancer instance to the Barcode Reader instance.
+        barcodeReader.setCameraEnhancerPara(para)
+    }
+    
+    public func dlsLicenseVerificationCallback(_ isSuccess: Bool, error: Error?) {
+        if(error != nil)
+        {
+            print("dls error")
+        }
+    }
+    
+    // Obtain the recognized barcode results from the textResultCallback and display the results
+    public func textResultCallback(_ frameId: Int, results: [iTextResult]?, userData: NSObject?) {
+        let count = results?.count ?? 0
+        let array = NSMutableArray()
+        for index in 0..<count {
+            let tr = results![index]
+            let result = NSMutableDictionary()
+            result["barcodeText"] = tr.barcodeText
+            result["barcodeFormat"] = tr.barcodeFormatString
+            result["barcodeBytesBase64"] = tr.barcodeBytes?.base64EncodedString()
+            array.add(result)
+        }
+        bridge.eventDispatcher().sendDeviceEvent(withName: "onScanned", body: array)
+    }
+    
+    public func onCameraOpened(){
+        let info = NSMutableDictionary()
+        info["selectedCamera"] = dce.getSelectedCamera()
+        print(dce.getSelectedCamera())
+        let array = NSMutableArray()
+        for cameraID in dce.getAllCameras(){
+            array.add(cameraID)
+        }
+        info["cameras"] = array
+        bridge.eventDispatcher().sendDeviceEvent(withName: "onCameraUpdated", body: info)
+    }
 }

@@ -14,6 +14,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/xulihang/react-native-dynamsoft-barcode-scanner.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
-
+  s.libraries = 'c++'
+  s.vendored_frameworks = 'DynamsoftBarcodeReader.framework', 'DynamsoftCameraEnhancer.framework'
   s.dependency "React-Core"
 end

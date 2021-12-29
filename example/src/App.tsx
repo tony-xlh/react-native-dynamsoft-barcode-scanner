@@ -99,12 +99,12 @@ export default function App() {
       <View style={{ position: 'absolute', top: 10,left: 10 }}>
           <Text style={{ fontSize: 14, textShadowRadius: 12, textShadowColor: "black", color: "white" }}> {barcodesInfo} </Text>
       </View>
-      <View style={{ position: 'absolute', top: 10, right: 10, height: 20 }}>
+      <View style={{ position: 'absolute', bottom: 20, right: 0, height: 20 }}>
           <TouchableOpacity onPress={toggleFlash} >
             <Text style={{ fontSize: 14, textShadowRadius: 30, textShadowColor: "white" }}> Toggle Flash </Text>
           </TouchableOpacity>
       </View>
-      <View style={{ position: 'absolute', top: 40, right: 10, height: 20 }}>
+      <View style={{ position: 'absolute', bottom: 0, right: 0, height: 20 }}>
           <TouchableOpacity onPress={switchCamera} >
             <Text style={{ fontSize: 14,textAlignVertical:"center", textShadowRadius: 30, textShadowColor: "white" }}> Switch Camera </Text>
           </TouchableOpacity>
