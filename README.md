@@ -34,11 +34,7 @@ React Native Barcode Scanner library based on [Dynamsoft Barcode Reader](https:/
 
 ## Installation
 
-```sh
-npm install react-native-dynamsoft-barcode-scanner
-```
-
-Or from git:
+Install from github:
 
 ```sh
 npm install https://github.com/xulihang/react-native-dynamsoft-barcode-scanner
