@@ -44,6 +44,15 @@ Or from git:
 npm install https://github.com/xulihang/react-native-dynamsoft-barcode-scanner
 ```
 
+For iOS, add the following lines to `Info.plist`:
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>For barcode scanning</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>For barcode scanning</string>
+```
+
 ## Demo
 
 ```js
