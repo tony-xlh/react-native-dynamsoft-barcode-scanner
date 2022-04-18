@@ -401,11 +401,13 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-DynamsoftBarcodeScannerExample/Pods-DynamsoftBarcodeScannerExample-frameworks.sh",
-				"${PODS_ROOT}/../../../DynamsoftBarcodeReader.framework",
+				"${PODS_ROOT}/DynamsoftBarcodeReader/DynamsoftBarcodeReader.framework",
+				"${PODS_ROOT}/DynamsoftCameraEnhancer/DynamsoftCameraEnhancer.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/DynamsoftBarcodeReader.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/DynamsoftCameraEnhancer.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

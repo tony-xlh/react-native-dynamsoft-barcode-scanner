@@ -14,10 +14,10 @@ class DynamsoftBarcodeScannerViewManager: RCTViewManager  {
 
 
 
-class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DCELicenseVerificationListener, DBRTextResultDelegate {
-    @objc var dceLicense: String = "DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9"
-    @objc var dbrLicense: String = ""
-    @objc var organizationID: String = "200001"
+class DynamsoftBarcodeScannerView : UIView, DBRLicenseVerificationListener, DCELicenseVerificationListener, DBRTextResultListener {
+
+    @objc var dceLicense: String = "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAxLTE2NDk4Mjk3OTI2MzUiLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSIsInNlc3Npb25QYXNzd29yZCI6IndTcGR6Vm05WDJrcEQ5YUoifQ=="
+    @objc var dbrLicense: String = "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAxLTE2NDk4Mjk3OTI2MzUiLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSIsInNlc3Npb25QYXNzd29yZCI6IndTcGR6Vm05WDJrcEQ5YUoifQ=="
     var dce:DynamsoftCameraEnhancer! = nil
     var barcodeReader:DynamsoftBarcodeReader! = nil
     var dceView:DCECameraView! = nil
@@ -36,10 +36,12 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DC
                     configurationDCE()
                     updateSettings()
                 }else{
+                    barcodeReader.startScanning()
                     dce.resume()
                 }
             }else{
                 if dce != nil {
+                    barcodeReader.stopScanning()
                     dce.pause()
                 }
             }
@@ -88,24 +90,25 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DC
     func updateTemplate(){
         if barcodeReader != nil {
             if (template != ""){
-                var error: NSError? = NSError()
-                barcodeReader.initRuntimeSettings(with: template, conflictMode: EnumConflictMode.overwrite, error: &error)
+                try? barcodeReader.initRuntimeSettingsWithString(template, conflictMode: EnumConflictMode.overwrite)
             }else{
-                var error: NSError? = NSError()
-                barcodeReader.resetRuntimeSettings(&error)
+                try? barcodeReader.resetRuntimeSettings()
             }
         }
     }
     
     func configurationDBR() {
-        let dls = iDMDLSConnectionParameters()
-        if (dbrLicense != ""){
-            barcodeReader = DynamsoftBarcodeReader(license: dbrLicense)
-        }else{
-            dls.organizationID = organizationID
-            barcodeReader = DynamsoftBarcodeReader(licenseFromDLS: dls, verificationDelegate: self)
+        DynamsoftBarcodeReader.initLicense(dbrLicense, verificationDelegate: self)
+        barcodeReader = DynamsoftBarcodeReader.init()
+    }
+    
+    func dbrLicenseVerificationCallback(_ isSuccess: Bool, error: Error?) {
+        let err = error as NSError?
+        if(err != nil){
+            print("Server DBR license verify failed")
         }
     }
+    
         
     func configurationDCE() {
         // Initialize a camera view for previewing video.
@@ -121,32 +124,27 @@ class DynamsoftBarcodeScannerView : UIView, DMDLSLicenseVerificationDelegate, DC
     }
 
     func bindDCEtoDBR(){
-        // Create settings of video barcode reading.
-        let para = iDCESettingParameters.init()
-        // This cameraInstance is the instance of the Dynamsoft Camera Enhancer.
-        // The Barcode Reader will use this instance to take control of the camera and acquire frames from the camera to start the barcode decoding process.
-        para.cameraInstance = dce
-        // Make this setting to get the result. The result will be an object that contains text result and other barcode information.
-        para.textResultDelegate = self
-        // Bind the Camera Enhancer instance to the Barcode Reader instance.
-        barcodeReader.setCameraEnhancerPara(para)
+        // Bind Camera Enhancer to the Barcode Reader.
+        // The Barcode Reader will get video frame from the Camera Enhancer
+        barcodeReader.setCameraEnhancer(dce)
+
+        // Set text result call back to get barcode results.
+        barcodeReader.setDBRTextResultListener(self)
+
+        // Start the barcode decoding thread.
+        barcodeReader.startScanning()
     }
     
-    public func dlsLicenseVerificationCallback(_ isSuccess: Bool, error: Error?) {
-        if(error != nil)
-        {
-            print("dbr dls error")
-        }
-    }
     
     func dceLicenseVerificationCallback(_ isSuccess: Bool, error: Error?) {
-        if(error != nil){
-            print("dce dls error")
+        let err = error as NSError?
+        if(err != nil){
+            print("Server DCE license verify failed")
         }
     }
     
     // Obtain the recognized barcode results from the textResultCallback and display the results
-    public func textResultCallback(_ frameId: Int, results: [iTextResult]?, userData: NSObject?) {
+    func textResultCallback(_ frameId: Int, imageData: iImageData, results: [iTextResult]?) {
         let count = results?.count ?? 0
         let array = NSMutableArray()
         for index in 0..<count {
