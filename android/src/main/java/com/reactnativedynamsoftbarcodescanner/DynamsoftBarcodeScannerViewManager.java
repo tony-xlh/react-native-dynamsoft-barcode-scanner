@@ -35,7 +35,7 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     private ThemedReactContext context;
     private String dbrLicense = null;
     private String template = null;
-    private String dceLicense = "DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9";
+    private String dceLicense = "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAxLTE2NDk4Mjk3OTI2MzUiLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSIsInNlc3Npb25QYXNzd29yZCI6IndTcGR6Vm05WDJrcEQ5YUoifQ==";
     private Boolean flashOn = false;
     private Boolean isScanning = false;
 
@@ -151,7 +151,7 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
         if (dbrLicense != null){
             license = dceLicense;
         }else{
-            license = "DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9";
+            license = "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAxLTE2NDk4Mjk3OTI2MzUiLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSIsInNlc3Npb25QYXNzd29yZCI6IndTcGR6Vm05WDJrcEQ5YUoifQ==";
         }
         BarcodeReader.initLicense(license, new DBRLicenseVerificationListener() {
             @Override
