@@ -9,6 +9,7 @@ React Native Barcode Scanner library based on [Dynamsoft Barcode Reader](https:/
 
 ## Supported Barcode Symbologies
 
+* Code 11
 * Code 39
 * Code 93
 * Code 128
@@ -31,6 +32,7 @@ React Native Barcode Scanner library based on [Dynamsoft Barcode Reader](https:/
 * GS1 Composite
 * Postal Code
 * Dot Code
+* PharmaCode
 
 ## Installation
 
@@ -113,7 +115,6 @@ type DynamsoftBarcodeScannerProps = {
   isScanning: boolean;
   style: ViewStyle;
   template?: string;
-  organizationID?: string;
   dbrLicense?: string;
   dceLicense?: string;
   flashOn?: boolean;
