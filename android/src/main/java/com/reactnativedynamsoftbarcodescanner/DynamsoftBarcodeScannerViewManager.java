@@ -8,12 +8,11 @@ import androidx.annotation.NonNull;
 
 import com.dynamsoft.dbr.BarcodeReader;
 import com.dynamsoft.dbr.BarcodeReaderException;
-import com.dynamsoft.dbr.DBRDLSLicenseVerificationListener;
-import com.dynamsoft.dbr.DCESettingParameters;
-import com.dynamsoft.dbr.DMDLSConnectionParameters;
+import com.dynamsoft.dbr.DBRLicenseVerificationListener;
 import com.dynamsoft.dbr.EnumConflictMode;
+import com.dynamsoft.dbr.ImageData;
 import com.dynamsoft.dbr.TextResult;
-import com.dynamsoft.dbr.TextResultCallback;
+import com.dynamsoft.dbr.TextResultListener;
 import com.dynamsoft.dce.CameraEnhancer;
 import com.dynamsoft.dce.CameraEnhancerException;
 import com.dynamsoft.dce.DCECameraView;
@@ -36,7 +35,6 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     private ThemedReactContext context;
     private String dbrLicense = null;
     private String template = null;
-    private String organizationID = "200001";
     private String dceLicense = "DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9";
     private Boolean flashOn = false;
     private Boolean isScanning = false;
@@ -54,11 +52,6 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
         reactContext.addLifecycleEventListener(this);
         mCameraView = new DCECameraView(reactContext.getBaseContext());
         return mCameraView;
-    }
-
-    @ReactProp(name = "organizationID")
-    public void setOrganizationID(View view, String ID) {
-        organizationID = ID;
     }
 
     @ReactProp(name = "dceLicense")
@@ -129,10 +122,18 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
         if (isScanning) {
             initIfNeeded();
             updateSettings();
-            reader.StartCameraEnhancer();
+            try {
+                mCameraEnhancer.open();
+            } catch (CameraEnhancerException e) {
+                e.printStackTrace();
+            }
         }else{
-            if (reader!=null){
-                reader.StopCameraEnhancer();
+            if (mCameraEnhancer!=null){
+                try {
+                    mCameraEnhancer.close();
+                } catch (CameraEnhancerException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -146,28 +147,24 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     }
 
     private void initDBR()  {
+        String license;
+        if (dbrLicense != null){
+            license = dceLicense;
+        }else{
+            license = "DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9";
+        }
+        BarcodeReader.initLicense(license, new DBRLicenseVerificationListener() {
+            @Override
+            public void DBRLicenseVerificationCallback(boolean isSuccess, Exception error) {
+                if(!isSuccess){
+                    error.printStackTrace();
+                }
+            }
+        });
         try {
             reader = new BarcodeReader();
         } catch (BarcodeReaderException e) {
             e.printStackTrace();
-        }
-        if (dbrLicense!=null){
-            try {
-                reader.initLicense(dbrLicense);
-            } catch (BarcodeReaderException e) {
-                e.printStackTrace();
-            }
-        }else{
-            DMDLSConnectionParameters dbrParameters = new DMDLSConnectionParameters();
-            dbrParameters.organizationID = organizationID;
-            reader.initLicenseFromDLS(dbrParameters, new DBRDLSLicenseVerificationListener() {
-                @Override
-                public void DLSLicenseVerificationCallback(boolean isSuccessful, Exception e) {
-                    if (!isSuccessful) {
-                        e.printStackTrace();
-                    }
-                }
-            });
         }
     }
 
@@ -189,17 +186,20 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
     }
 
     private void bindDBRandDCE(){
-        TextResultCallback mTextResultCallback = new TextResultCallback() {
+        TextResultListener mTextResultListener = new TextResultListener() {
             // Obtain the recognized barcode results and display.
             @Override
-            public void textResultCallback(int i, TextResult[] textResults, Object userData) {
+            public void textResultCallback(int id, ImageData imageData, TextResult[] textResults) {
                 onScanned(textResults);
             }
         };
-        DCESettingParameters dceSettingParameters = new DCESettingParameters();
-        dceSettingParameters.cameraInstance = mCameraEnhancer;
-        dceSettingParameters.textResultCallback = mTextResultCallback;
-        reader.SetCameraEnhancerParam(dceSettingParameters);
+        reader.setTextResultListener(mTextResultListener);
+        // Bind the Camera Enhancer instance to the Barcode Reader instance.
+        // The mCameraEnhancer is the instance of the Dynamsoft Camera Enhancer.
+        // The Barcode Reader will use this instance to take control of the camera and acquire frames from the camera to start the barcode decoding process.
+        reader.setCameraEnhancer(mCameraEnhancer);
+        // Start the barcode scanning thread.
+        reader.startScanning();
     }
 
     public void onScanned(TextResult[] textResults) {
@@ -228,17 +228,27 @@ public class DynamsoftBarcodeScannerViewManager extends SimpleViewManager<DCECam
 
     @Override
     public void onHostResume() {
-        if (reader!=null){
+        if (mCameraEnhancer!=null){
             if (this.isScanning){
-                reader.StartCameraEnhancer();
+                try {
+                    mCameraEnhancer.open();
+                    reader.startScanning();
+                } catch (CameraEnhancerException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
 
     @Override
     public void onHostPause() {
-        if (reader!=null){
-            reader.StopCameraEnhancer();
+        if (mCameraEnhancer!=null){
+            try {
+                reader.stopScanning();
+                mCameraEnhancer.close();
+            } catch (CameraEnhancerException e) {
+                e.printStackTrace();
+            }
         }
     }
 

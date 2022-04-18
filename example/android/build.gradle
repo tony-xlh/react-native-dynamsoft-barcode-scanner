@@ -31,7 +31,7 @@ allprojects {
             url("$rootDir/../node_modules/jsc-android/dist")
         }
         maven {
-          url "http://download2.dynamsoft.com/maven/dbr/aar"
+          url "https://download2.dynamsoft.com/maven/dbr/aar"
         }
         maven {
           url "https://download2.dynamsoft.com/maven/dce/aar"
